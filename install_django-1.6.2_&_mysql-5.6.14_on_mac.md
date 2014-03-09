@@ -241,4 +241,114 @@
 	Quit the server with CONTROL-C.
 	[09/Mar/2014 03:53:14] "GET / HTTP/1.1" 200 1757
 
-	
+#### 8. Install Nginx
+	➜  ~  brew install nginx
+	==> Downloading http://nginx.org/download/nginx-1.4.4.tar.gz
+	######################################################################## 100.0%
+	==> ./configure --prefix=/usr/local/Cellar/nginx/1.4.4 --with-http_ssl_module --with-
+	==> make
+	==> make install
+	==> Caveats
+	Docroot is: /usr/local/var/www
+
+	The default port has been set in /usr/local/etc/nginx/nginx.conf to 8080 so that
+	nginx can run without sudo.
+
+	To have launchd start nginx at login:
+	    ln -sfv /usr/local/opt/nginx/*.plist ~/Library/LaunchAgents
+	Then to load nginx now:
+	    launchctl load ~/Library/LaunchAgents/homebrew.mxcl.nginx.plist
+	Or, if you don't want/need launchctl, you can just run:
+	    nginx
+	==> Summary
+	🍺  /usr/local/Cellar/nginx/1.4.4: 7 files, 876K, built in 100 seconds
+	➜  ~  nginx -V
+	nginx version: nginx/1.4.4
+	TLS SNI support enabled
+	configure arguments: --prefix=/usr/local/Cellar/nginx/1.4.4 --with-http_ssl_module --with-pcre --with-ipv6 --sbin-path=/usr/local/Cellar/nginx/1.4.4/bin/nginx --with-cc-opt=-I/usr/local/include --with-ld-opt=-L/usr/local/lib --conf-path=/usr/local/etc/nginx/nginx.conf --pid-path=/usr/local/var/run/nginx.pid --lock-path=/usr/local/var/run/nginx.lock --http-client-body-temp-path=/usr/local/var/run/nginx/client_body_temp --http-proxy-temp-path=/usr/local/var/run/nginx/proxy_temp --http-fastcgi-temp-path=/usr/local/var/run/nginx/fastcgi_temp --http-uwsgi-temp-path=/usr/local/var/run/nginx/uwsgi_temp --http-scgi-temp-path=/usr/local/var/run/nginx/scgi_temp --http-log-path=/usr/local/var/log/nginx/access.log --error-log-path=/usr/local/var/log/nginx/error.log --with-http_gzip_static_module
+	➜  ~  sudo nginx
+	Password:
+	➜  ~  nginx -s stop
+	nginx: [alert] could not open error log file: open() "/usr/local/var/log/nginx/error.log" failed (13: Permission denied)
+	2014/03/09 22:34:03 [notice] 35279#0: signal process started
+	2014/03/09 22:34:03 [alert] 35279#0: kill(35266, 15) failed (1: Operation not permitted)
+	➜  ~  sudo nginx -s stop	
+
+#### 9. Install uWSGI
+	➜  ~  sudo pip install uwsgi
+	Password:
+	Downloading/unpacking uwsgi
+	  Downloading uwsgi-2.0.2.tar.gz (754kB): 754kB downloaded
+	  Running setup.py (path:/private/tmp/pip_build_root/uwsgi/setup.py) egg_info for package uwsgi
+	    
+	Installing collected packages: uwsgi
+	  Running setup.py install for uwsgi
+	......
+		################# uWSGI configuration #################
+	    
+	    pcre = True
+	    kernel = Darwin
+	    malloc = libc
+	    execinfo = False
+	    ifaddrs = True
+	    ssl = True
+	    zlib = True
+	    locking = osx_spinlock
+	    plugin_dir = .
+	    timer = kqueue
+	    yaml = embedded
+	    json = False
+	    filemonitor = kqueue
+	    routing = True
+	    debug = False
+	    capabilities = False
+	    xml = libxml2
+	    event = kqueue
+	    
+	    ############## end of uWSGI configuration #############
+	    total build time: 26 seconds
+	    *** uWSGI is ready, launch it with /usr/local/bin/uwsgi ***
+	    
+	Successfully installed uwsgi
+	Cleaning up...
+
+#### 10. Test uWSGI
+	➜  repo  cat test.py
+	def application(env, start_response):
+		start_response('200 OK', [('Content-Type', 'text/html')])
+		return 'Hello World'
+	➜  repo  uwsgi --http :8001 --wsgi-file test.py
+	*** Starting uWSGI 2.0.2 (64bit) on [Sun Mar  9 23:19:24 2014] ***
+	compiled with version: 4.2.1 Compatible Apple LLVM 5.0 (clang-500.2.79) on 09 March 2014 23:07:05
+	os: Darwin-13.0.0 Darwin Kernel Version 13.0.0: Thu Sep 19 22:22:27 PDT 2013; root:xnu-2422.1.72~6/RELEASE_X86_64
+	nodename: pengleongtekiiMac.local
+	machine: x86_64
+	clock source: unix
+	pcre jit disabled
+	detected number of CPU cores: 4
+	current working directory: /Users/pengleong/repo
+	detected binary path: /usr/local/bin/uwsgi
+	*** WARNING: you are running uWSGI without its master process manager ***
+	your processes number limit is 709
+	your memory page size is 4096 bytes
+	detected max file descriptor number: 256
+	lock engine: OSX spinlocks
+	thunder lock: disabled (you can enable it with --thunder-lock)
+	uWSGI http bound on :8001 fd 4
+	spawned uWSGI http 1 (pid: 36040)
+	uwsgi socket 0 bound to TCP address 127.0.0.1:50568 (port auto-assigned) fd 3
+	Python version: 2.7.5 (default, Aug 25 2013, 00:04:04)  [GCC 4.2.1 Compatible Apple LLVM 5.0 (clang-500.0.68)]
+	*** Python threads support is disabled. You can enable it with --enable-threads ***
+	Python main interpreter initialized at 0x7fabe0c0b300
+	your server socket listen backlog is limited to 100 connections
+	your mercy for graceful operations on workers is 60 seconds
+	mapped 72752 bytes (71 KB) for 1 cores
+	*** Operational MODE: single process ***
+	WSGI app 0 (mountpoint='') ready in 0 seconds on interpreter 0x7fabe0c0b300 pid: 36039 (default app)
+	*** uWSGI is running in multiple interpreter mode ***
+	spawned uWSGI worker 1 (and the only) (pid: 36039, cores: 1)
+	[pid: 36039|app: 0|req: 1/1] 127.0.0.1 () {34 vars in 602 bytes} [Sun Mar  9 23:19:45 2014] GET / => generated 11 bytes in 0 msecs (HTTP/1.1 200) 1 headers in 44 bytes (1 switches on core 0)
+	[pid: 36039|app: 0|req: 2/2] 127.0.0.1 () {34 vars in 553 bytes} [Sun Mar  9 23:19:45 2014] GET /favicon.ico => generated 11 bytes in 0 msecs (HTTP/1.1 200) 1 headers in 44 bytes (1 switches on core 0)
+	[pid: 36039|app: 0|req: 3/3] 127.0.0.1 () {34 vars in 553 bytes} [Sun Mar  9 23:19:45 2014] GET /favicon.ico => generated 11 bytes in 0 msecs (HTTP/1.1 200) 1 headers in 44 bytes (0 switches on core 0)
+
+
